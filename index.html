@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Chamados - Suporte TI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-section, .chamados-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .chamado-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .chamado-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chamado-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .chamado-id {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.aberto {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status.em-andamento {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .status.resolvido {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .chamado-info {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .chamado-info strong {
+            color: #333;
+        }
+
+        .mensagem-sucesso, .mensagem-erro {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .mensagem-sucesso {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .mensagem-erro {
+            background: #ff7675;
+            color: #d63031;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎫 Sistema de Chamados - Suporte TI</h1>
+        
+        <div class="content-wrapper">
+            <!-- Seção do Formulário -->
+            <div class="form-section">
+                <h2>Novo Chamado</h2>
+                <div class="mensagem-sucesso" id="mensagemSucesso">
+                    ✓ Chamado registrado com sucesso!
+                </div>
+                <div class="mensagem-erro" id="mensagemErro">
+                    ✗ Erro ao registrar chamado. Tente novamente.
+                </div>
+                
+                <form id="formChamado">
+                    <div class="form-group">
+                        <label for="solicitante">Nome do Solicitante *</label>
+                        <input type="text" id="solicitante" name="solicitante" required placeholder="Digite seu nome completo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail *</label>
+                        <input type="email" id="email" name="email" required placeholder="seu.email@empresa.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="departamento">Departamento *</label>
+                        <select id="departamento" name="departamento" required>
+                            <option value="">Selecione...</option>
+                            <option value="Administrativo">Administrativo</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="RH">Recursos Humanos</option>
+                            <option value="Vendas">Vendas</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="TI">TI</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prioridade">Prioridade *</label>
+                        <select id="prioridade" name="prioridade" required>
+                            <option value="">Selecione...</option>
+                            <option value="Baixa">Baixa</option>
+                            <option value="Média">Média</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Crítica">Crítica</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="categoria">Categoria *</label>
+                        <select id="categoria" name="categoria" required>
+                            <option value="">Selecione...</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Rede">Rede/Internet</option>
+                            <option value="E-mail">E-mail</option>
+                            <option value="Impressora">Impressora</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao">Descrição do Problema *</label>
+                        <textarea id="descricao" name="descricao" required placeholder="Descreva detalhadamente o problema..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">📝 Registrar Chamado</button>
+                </form>
+            </div>
+
+            <!-- Seção de Chamados -->
+            <div class="chamados-section">
+                <h2>Chamados Recentes</h2>
+                <div id="listaChamados">
+                    <div class="loading">Carregando chamados...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Carregar chamados ao iniciar
+            carregarChamados();
+
+            // Manipulador do formulário
+            $('#formChamado').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Coletar dados do formulário
+                var formData = {
+                    solicitante: $('#solicitante').val(),
+                    email: $('#email').val(),
+                    departamento: $('#departamento').val(),
+                    prioridade: $('#prioridade').val(),
+                    categoria: $('#categoria').val(),
+                    descricao: $('#descricao').val()
+                };
+                
+                // Enviar via AJAX para o PHP
+                $.ajax({
+                    url: 'salvar_chamado.php',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Mostrar mensagem de sucesso
+                            $('#mensagemSucesso').fadeIn().delay(3000).fadeOut();
+                            
+                            // Limpar formulário
+                            $('#formChamado')[0].reset();
+                            
+                            // Recarregar lista de chamados
+                            carregarChamados();
+                        } else {
+                            // Mostrar mensagem de erro
+                            $('#mensagemErro').text('✗ ' + response.message).fadeIn().delay(3000).fadeOut();
+                        }
+                    },
+                    error: function() {
+                        $('#mensagemErro').fadeIn().delay(3000).fadeOut();
+                    }
+                });
+            });
+
+            // Função para carregar chamados
+            function carregarChamados() {
+                $.ajax({
+                    url: 'listar_chamados.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            renderizarChamados(response.chamados);
+                        } else {
+                            $('#listaChamados').html('<div class="empty-state">Erro ao carregar chamados</div>');
+                        }
+                    },
+                    error: function() {
+                        $('#listaChamados').html('<div class="empty-state">Erro ao conectar com o servidor</div>');
+                    }
+                });
+            }
+
+            // Função para renderizar chamados
+            function renderizarChamados(chamados) {
+                var html = '';
+                
+                if (chamados.length === 0) {
+                    html = '<div class="empty-state">📋 Nenhum chamado registrado ainda</div>';
+                } else {
+                    chamados.forEach(function(chamado) {
+                        var statusTexto = chamado.status.replace('-', ' ').toUpperCase();
+                        
+                        html += `
+                            <div class="chamado-item">
+                                <div class="chamado-header">
+                                    <span class="chamado-id">#${chamado.id}</span>
+                                    <span class="status ${chamado.status}">${statusTexto}</span>
+                                </div>
+                                <div class="chamado-info">
+                                    <strong>Solicitante:</strong> ${chamado.solicitante}
+                                </div>
+                                <div class="chamado-info">
+                                    <strong>Departamento:</strong> ${chamado.departamento}
+                                </div>
+                                <div class="chamado-info">
+                                    <strong>Categoria:</strong> ${chamado.categoria} | 
+                                    <strong>Prioridade:</strong> ${chamado.prioridade}
+                                </div>
+                                <div class="chamado-info">
+                                    <strong>Descrição:</strong> ${chamado.descricao}
+                                </div>
+                                <div class="chamado-info" style="margin-top: 10px; color: #999; font-size: 12px;">
+                                    📅 ${chamado.data_criacao}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                $('#listaChamados').html(html);
+            }
+
+            // Atualizar lista a cada 30 segundos
+            setInterval(carregarChamados, 30000);
+        });
+    </script>
+</body>
+</html>
